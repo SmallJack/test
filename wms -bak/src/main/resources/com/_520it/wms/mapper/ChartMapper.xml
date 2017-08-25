@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.wms.mapper.ChartMapper">
+	<sql id="base_where">
+		<where>
+			bill.status = 1
+			<if test="keyword !=null and keyword !=''">
+				AND (p.sn like concat('%',#{keyword},'%')) or p.name like
+				concat('%',#{keyword},'%'))
+			</if>
+			<if test="brandId > 0">
+				AND b.id = #{brandId}
+			</if>
+			<if test="supplierId > 0">
+				AND s.id = #{supplierId}
+			</if>
+			<if test="beginDate != null">
+				AND bill.vdate &gt;= #{beginDate}
+			</if>
+			<if test="endDate != null">
+				AND bill.vdate &lt;= #{endDate}
+			</if>
+
+		</where>
+	</sql>
+
+	<select id="queryOrderBillChart" resultType="hashmap">
+		select ${groupByType}
+		groupByType ,SUM(obi.amount) totalAmount
+		,SUM(obi.number)
+		totalNumber
+		from orderbillitem obi join orderbill bill
+		on obi.bill_id =
+		bill.id
+		join product p on p.id = obi.product_id
+		join
+		brand b on b.id =
+		p.brand_id
+		join employee iu on bill.inputUser_id =
+		iu.id
+		join supplier s
+		on bill.supplier_id = s.id
+		<include refid="base_where" />
+		GROUP BY ${groupByType}
+	</select>
+
+
+	<sql id="sale_where">
+		<where>
+			<if test="keyword !=null and keyword !=''">
+				AND (p.sn like concat('%',#{keyword},'%')) or p.name like
+				concat('%',#{keyword},'%'))
+			</if>
+			<if test="brandId > 0">
+				AND b.id = #{brandId}
+			</if>
+			<if test="clientId > 0">
+				AND c.id = #{clientId}
+			</if>
+			<if test="beginDate != null">
+				AND sa.vdate &gt;= #{beginDate}
+			</if>
+			<if test="endDate != null">
+				AND sa.vdate &lt;= #{endDate}
+			</if>
+
+		</where>
+	</sql>
+
+
+
+
+	<select id="querySaleChart" resultType="hashmap">
+		select
+		${groupByType} groupByType,
+		SUM(sa.number) totalNumber,
+		SUM(sa.saleAmount) totalAmount,
+		SUM(sa.saleAmount - sa.costAmount) grossProfit
+		from saleaccount sa
+		join employee sm on sa.saleman_id = sm.id
+		join product p on sa.product_id = p.id
+		join client c on sa.client_id = c.id
+		join brand b on p.brand_id = b.id
+		<include refid="sale_where" />
+		Group by ${groupByType}
+	</select>
+</mapper>

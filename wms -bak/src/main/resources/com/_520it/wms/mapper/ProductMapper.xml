@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.wms.mapper.ProductMapper">
+	<resultMap id="base_result" type="Product">
+		<id column="id" property="id" />
+		<result column="costPrice" property="costPrice" />
+		<result column="sn" property="sn" />
+		<result column="imagePath" property="imagePath" />
+		<result column="name" property="name" />
+		<result column="salePrice" property="salePrice" />
+		<result column="intro" property="intro" />
+
+		<association property="brand" javaType="Brand"
+			columnPrefix="b" resultMap="com._520it.wms.mapper.BrandMapper.SimpleResultMap">
+		</association>
+	</resultMap>
+	<delete id="delete">
+		delete from product where id = #{id}
+	</delete>
+	<insert id="save" useGeneratedKeys="true" keyProperty="id"
+		keyColumn="id">
+		insert into
+		product
+		(costPrice,sn,imagePath,name,brand_id,salePrice,intro)
+		values
+		(#{costPrice},#{sn},#{imagePath},#{name},#{brand.id},#{salePrice},#{intro})
+	</insert>
+	<update id="update">
+		update product
+		set
+		costPrice=#{costPrice},
+		sn=#{sn},
+		imagePath=#{imagePath},
+		name=#{name},
+		brand_id=#{brand.id},
+		salePrice=#{salePrice},
+		intro=#{intro}
+		where id = #{id}
+	</update>
+	<select id="get" resultMap="base_result">
+		select p.id,p.sn, p.name,
+		p.imagePath,
+		p.intro,p.costPrice,p.salePrice,b.id as bid ,b.name as
+		bname from
+		product p left join
+		brand b on p.brand_id = b.id
+		where
+		p.id =
+		#{id}
+	</select>
+	<select id="list" resultMap="base_result">
+		select p.id, p.name, p.imagePath,
+		p.intro,p.costPrice,p.salePrice,b.id as bid ,b.name as bname from
+		product p left join
+		brand b on p.brand_id = b.id
+	</select>
+	<sql id="conditions_sql">
+		<where>
+			<if test="keywords !=null">
+				(p.sn like concat('%',#{keywords},'%') or p.name like
+				concat('%',#{keywords},'%') )
+			</if>
+			<if test="brandId >=0">
+				AND p.brand_id = #{brandId}
+			</if>
+		</where>
+	</sql>
+	<select id="getTotalCount" resultType="long">
+		select count(*) from product p
+		<include refid="conditions_sql"></include>
+	</select>
+	<select id="getListData" resultMap="base_result">
+		select p.id,p.sn,p.name, p.imagePath,
+		p.intro,p.costPrice,p.salePrice,b.id
+		as bid ,b.name as bname from
+		product p left join
+		brand b on p.brand_id =
+		b.id
+		<include refid="conditions_sql"></include>
+		limit #{beginIndex},#{pageSize}
+	</select>
+</mapper>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.wms.mapper.StockIncomeBillMapper">
+	<resultMap id="base_mapper" type="StockIncomeBill">
+		<id column="id" property="id" />
+		<result column="sn" property="sn" />
+
+		<result column="vdate" property="vdate" />
+		<result column="status" property="status" />
+		<result column="auditTime" property="auditTime" />
+		<result column="inputTime" property="inputTime" />
+
+		<result column="totalAmount" property="totalAmount" />
+		<result column="totalNumber" property="totalNumber" />
+
+		<association property="inputUser" javaType="Employee"
+			columnPrefix="iu_">
+			<id property="id" column="id" />
+			<result property="name" column="name" />
+		</association>
+		<association property="auditor" javaType="Employee"
+			columnPrefix="au_">
+			<id property="id" column="id" />
+			<result property="name" column="name" />
+		</association>
+		<association property="depot" javaType="Depot"
+			columnPrefix="dt_">
+			<id property="id" column="id" />
+			<result property="name" column="name" />
+		</association>
+
+
+		<collection property="items" ofType="StockIncomeBillItem"
+			column="id"
+			select="com._520it.wms.mapper.StockIncomeBillItemMapper.getItemsByBillId"></collection>
+	</resultMap>
+	<delete id="delete">
+		delete from stockIncomeBill where id = #{id}
+	</delete>
+	<insert id="save" useGeneratedKeys="true" keyProperty="id"
+		keyColumn="id">
+		insert into
+		stockIncomeBill
+		(sn,auditor_id,vdate,status,auditTime,inputTime,depot_id,totalAmount,totalNumber,inputUser_id)
+		values
+		(#{sn},#{auditor.id},#{vdate},#{status},#{auditTime},#{inputTime},#{depot.id},#{totalAmount},#{totalNumber},#{inputUser.id})
+	</insert>
+	<update id="update">
+		update stockIncomeBill
+		set
+		sn=#{sn},
+		vdate=#{vdate},
+		depot_id=#{depot.id},
+		storeNumber = #{storeNumber},
+		amount = #{amount},
+		totalAmount=#{totalAmount},
+		totalNumber=#{totalNumber}
+		where id = #{id}
+	</update>
+
+	<sql id="base_colum">
+		sb.id,sb.sn,sb.vdate,sb.status,sb.totalAmount,sb.totalNumber,sb.auditTime,sb.inputTime,
+		iu.id iu_id,iu.name iu_name, au.id au_id,au.name au_name,dt.id
+		dt_id,dt.name dt_name
+	</sql>
+
+	<sql id="base_table">
+		stockIncomeBill sb
+		join employee iu on sb.inputUser_id
+		=
+		iu.id
+		join depot dt on sb.depot_id = dt.id
+		left join employee au
+		on
+		sb.auditor_id =
+		au.id
+	</sql>
+
+
+	<select id="get" resultMap="base_mapper">
+		select
+		<include refid="base_colum" />
+		from
+		<include refid="base_table" />
+		where sb.id = #{id}
+	</select>
+	<select id="list" resultMap="base_mapper">
+		select * from stockIncomeBill
+	</select>
+	<sql id="conditions_sql">
+		<where>
+			<if test="beginTime !=null">
+				sb.vdate &gt;= #{beginTime}
+			</if>
+			<if test="endTime!=null">
+				and sb.vdate &lt;= #{endTime}
+			</if>
+			<if test="status >= 0">
+				and sb.status = #{status}
+			</if>
+			<if test="depotId >=0">
+				and sb.depot_id = #{depotId}
+			</if>
+
+		</where>
+	</sql>
+	<select id="getTotalCount" resultType="long">
+		select count(*) from
+		<include refid="base_table" />
+		<include refid="conditions_sql"></include>
+	</select>
+	<select id="getListData" resultMap="base_mapper">
+		select
+		<include refid="base_colum" />
+		from
+		<include refid="base_table" />
+		<include refid="conditions_sql"></include>
+		limit #{beginIndex},#{pageSize}
+	</select>
+
+	<update id="updateStatus">
+		update stockIncomeBill set status = #{status},
+		auditor_id =
+		#{auditor.id},auditTime=#{auditTime} where id =
+		#{id};
+	</update>
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+	<constant name="struts.devMode" value="true" />
+	<constant name="struts.ui.theme" value="simple" />
+	<package name="wmsPkg" extends="struts-default" namespace="/">
+		<!-- 注册拦截器 -->
+		<interceptors>
+			<interceptor name="checkLogin"
+				class="com._520it.wms.web.interceptor.CheckLoginInterceptor"></interceptor>
+			<interceptor name="securityInterceptor"
+				class="com._520it.wms.web.interceptor.SecurityInterceptor"></interceptor>
+			<interceptor-stack name="myStack">
+				<interceptor-ref name="checkLogin"></interceptor-ref>
+				<interceptor-ref name="securityInterceptor"></interceptor-ref>
+				<interceptor-ref name="store">
+					<!-- 拦截数据的读写的方式 -->
+					<param name="operationMode">AUTOMATIC</param>
+				</interceptor-ref>
+				<interceptor-ref name="defaultStack"></interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+		<default-interceptor-ref name="myStack"></default-interceptor-ref>
+		<global-results>
+			<result name="login">/login.jsp</result>
+			<result name="nopermission">/nopermission.jsp</result>
+			<!-- <result name="error">/commons/error.jsp</result> -->
+		</global-results>
+		<!-- 配置全局的异常信息 -->
+		<!-- <global-exception-mappings>
+		
+			exception:异常的类型
+			result:出现这种异常去找哪一个逻辑视图
+		 -->
+		<!-- <exception-mapping result="error"
+				exception="java.lang.ArithmeticException"></exception-mapping>
+		</global-exception-mappings> -->
+		<action name="systemMenu_*" class="systemMenuAction" method="{1}">
+			<result name="list">
+				/WEB-INF/views/systemMenu/list.jsp
+			</result>
+			<result type="redirectAction">
+				<!-- 指定要访问的action的名称 -->
+				<param name="actionName">systemMenu</param>
+				<!-- 指定在访问上面的action的时候传递qo.parentId到下一个请求中 -->
+				<param name="qo.parentId">${qo.parentId}</param>
+			</result>
+			<result name="input">/WEB-INF/views/systemMenu/input.jsp</result>
+		</action>
+		<action name="*_*" class="{1}Action" method="{2}">
+			<result name="list">
+				/WEB-INF/views/{1}/list.jsp
+			</result>
+			<result type="redirectAction">
+				{1}
+			</result>
+			<result name="input">/WEB-INF/views/{1}/input.jsp</result>
+			<result name="{2}">/WEB-INF/views/{1}/{2}.jsp</result>
+
+		</action>
+		<action name="main">
+			<result>
+				/WEB-INF/views/main.jsp
+			</result>
+		</action>
+		<action name="login" class="loginAction">
+			<interceptor-ref name="defaultStack"></interceptor-ref>
+			<result name="login">
+				/login.jsp
+			</result>
+			<result name="main" type="redirectAction">
+				main
+			</result>
+		</action>
+	</package>
+
+</struts>

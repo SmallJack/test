@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.wms.mapper.StockOutcomeBillItemMapper">
+	<resultMap id="base_mapper" type="StockOutcomeBillItem">
+		<id column="id" property="id" />
+		<result column="amount" property="amount" />
+		<result column="number" property="number" />
+		<result column="salePrice" property="salePrice" />
+		<result column="remark" property="remark" />
+
+		<association property="product" javaType="Product" column="product_id"
+			select="com._520it.wms.mapper.ProductMapper.get"></association>
+		<association property="bill" javaType="StockOutcomeBill"
+			column="bill_id" select="com._520it.wms.mapper.StockOutcomeBillMapper.get"></association>
+	</resultMap>
+
+	<delete id="deleteAllByStockOutcomeBillId">
+		delete from stockOutcomeBillItem where bill_id =
+		#{stockOutcomeBillId}
+	</delete>
+	<insert id="save" useGeneratedKeys="true" keyProperty="id"
+		keyColumn="id">
+		insert into
+		stockOutcomeBillItem
+		(amount,product_id,number,salePrice,bill_id,remark)
+		values
+		(#{amount},#{product.id},#{number},#{salePrice},#{bill.id},#{remark})
+	</insert>
+
+	<select id="getItemsByBillId" resultMap="base_mapper">
+		select
+		id ,amount,product_id,number,salePrice,remark from
+		stockOutcomeBillItem
+		where bill_id = #{billId}
+	</select>
+
+</mapper>
